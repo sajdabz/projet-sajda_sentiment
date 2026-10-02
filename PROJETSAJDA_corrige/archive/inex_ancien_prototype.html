@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse de Sentiments</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #14213D;
+    --ink-soft: #1F2E52;
+    --paper: #FAF7F0;
+    --gold: #C9A227;
+    --gold-soft: #E4CE7E;
+    --pos: #2D6A4F;
+    --neg: #9D2B2B;
+    --neu: #8A8375;
+    --line: rgba(20, 33, 61, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(201,162,39,0.08), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(201,162,39,0.06), transparent 45%);
+    color: var(--paper);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 48px 16px;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    opacity: 0.85;
+  }
+
+  h1.display-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    color: var(--paper);
+    letter-spacing: -0.01em;
+    margin-bottom: 0.2rem;
+  }
+
+  .subtitle {
+    color: rgba(250, 247, 240, 0.6);
+    font-size: 0.98rem;
+    max-width: 46ch;
+  }
+
+  .console-card {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+
+  .console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(20,33,61,0.55);
+  }
+
+  .console-header .dot-row span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+    margin-left: 5px;
+  }
+
+  .console-body { padding: 28px 26px 30px; }
+
+  label.field-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(20,33,61,0.55);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  textarea#texteInput {
+    width: 100%;
+    min-height: 108px;
+    resize: vertical;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 14px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea#texteInput:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,162,39,0.18);
+  }
+
+  .btn-analyser {
+    margin-top: 14px;
+    width: 100%;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 3px;
+    padding: 13px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: background .15s ease, transform .1s ease;
+  }
+  .btn-analyser:hover { background: var(--ink-soft); color: var(--paper); }
+  .btn-analyser:active { transform: scale(0.99); }
+  .btn-analyser:disabled { opacity: 0.55; }
+
+  .status-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    color: rgba(20,33,61,0.55);
+    margin-top: 14px;
+  }
+  .status-line.error { color: var(--neg); }
+
+  /* --- Signature element: half-circle speedometer gauge --- */
+  .gauge-wrap {
+    margin-top: 26px;
+    display: none;
+    text-align: center;
+  }
+
+  .gauge-svg-holder {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  #gaugeNeedle {
+    transform-origin: 180px 180px;
+    transition: transform 1s cubic-bezier(.22,1,.36,1);
+  }
+
+  .gauge-face {
+    font-size: 1.6rem;
+    position: absolute;
+    top: 128px;
+  }
+  .gauge-face.sad   { left: 4px; }
+  .gauge-face.happy { right: 4px; }
+  .gauge-face.neutral {
+    left: 50%;
+    top: 18px;
+    transform: translateX(-50%);
+    font-size: 1.4rem;
+  }
+
+  .result-stamp {
+    margin-top: 6px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
+  }
+  .result-sentiment {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.8rem;
+    text-transform: capitalize;
+  }
+  .result-sentiment.positif { color: var(--pos); }
+  .result-sentiment.négatif { color: var(--neg); }
+  .result-sentiment.neutre  { color: var(--neu); }
+
+  .result-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: rgba(20,33,61,0.55);
+    margin-top: 4px;
+  }
+
+  footer.note {
+    text-align: center;
+    margin-top: 26px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: rgba(250,247,240,0.4);
+  }
+</style>
+</head>
+<body>
+
+<div class="container" style="max-width: 640px;">
+
+  <div class="eyebrow mb-2">Sentiment Analysis · v0.2</div>
+  <h1 class="display-title">Console d'analyse</h1>
+  <p class="subtitle mb-4">Écris un texte, la console le fait passer par le modèle et place l'aiguille entre négatif et positif.</p>
+
+  <div class="console-card">
+    <div class="console-header">
+      <span>analyses/nouvelle</span>
+      <span class="dot-row"><span></span><span></span><span></span></span>
+    </div>
+
+    <div class="console-body">
+      <label class="field-label" for="texteInput">Texte à analyser</label>
+      <textarea id="texteInput" placeholder="Ex : Le service était rapide et l'équipe très à l'écoute."></textarea>
+
+      <button class="btn-analyser" id="btnAnalyser" onclick="analyser()">Analyser le texte</button>
+
+      <div id="statusLine" class="status-line" style="display:none;"></div>
+
+      <div class="gauge-wrap" id="gaugeWrap">
+        <div class="gauge-svg-holder">
+          <svg viewBox="0 0 360 210" width="100%">
+            <!-- track -->
+            <path d="M 20 180 A 160 160 0 0 1 340 180" fill="none" stroke="#EFEAE0" stroke-width="22" stroke-linecap="round"/>
+            <!-- colored arc -->
+            <path d="M 20 180 A 160 160 0 0 1 340 180" fill="none" stroke="url(#gaugeGradient)" stroke-width="22" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#9D2B2B"/>
+                <stop offset="50%" stop-color="#8A8375"/>
+                <stop offset="100%" stop-color="#2D6A4F"/>
+              </linearGradient>
+            </defs>
+
+            <!-- tick marks -->
+            <line x1="60" y1="150" x2="75" y2="138" stroke="rgba(20,33,61,0.3)" stroke-width="3"/>
+            <line x1="300" y1="150" x2="285" y2="138" stroke="rgba(20,33,61,0.3)" stroke-width="3"/>
+
+            <!-- needle -->
+            <g id="gaugeNeedle">
+              <line x1="180" y1="180" x2="180" y2="55" stroke="#14213D" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <circle cx="180" cy="180" r="12" fill="#14213D" stroke="#FAF7F0" stroke-width="3"/>
+          </svg>
+
+          <div class="gauge-face sad">😞</div>
+          <div class="gauge-face neutral">😐</div>
+          <div class="gauge-face happy">😊</div>
+        </div>
+
+        <div class="result-stamp">
+          <div class="result-sentiment" id="resultSentiment">—</div>
+          <div class="result-meta" id="resultMeta">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note"></footer>
+</div>
+
+<script>
+  const API_URL = "http://127.0.0.1:8000/analyze";
+
+  async function analyser() {
+    const texte = document.getElementById("texteInput").value.trim();
+    const btn = document.getElementById("btnAnalyser");
+    const statusLine = document.getElementById("statusLine");
+    const gaugeWrap = document.getElementById("gaugeWrap");
+
+    if (!texte) {
+      statusLine.style.display = "block";
+      statusLine.className = "status-line error";
+      statusLine.innerText = "// écris un texte avant de lancer l'analyse";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Analyse en cours…";
+    statusLine.style.display = "block";
+    statusLine.className = "status-line";
+    statusLine.innerText = "// envoi de la requête au modèle…";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texte: texte })
+      });
+
+      if (!response.ok) throw new Error("Réponse serveur invalide (" + response.status + ")");
+
+      const data = await response.json();
+      afficherResultat(data);
+
+      statusLine.innerText = "// terminé — enregistré dans l'historique";
+    } catch (err) {
+      statusLine.className = "status-line error";
+      statusLine.innerText = "// erreur : impossible de contacter l'API (" + err.message + ")";
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "Analyser le texte";
+    }
+  }
+
+  function afficherResultat(data) {
+    const gaugeWrap = document.getElementById("gaugeWrap");
+    const needle = document.getElementById("gaugeNeedle");
+    const sentimentEl = document.getElementById("resultSentiment");
+    const metaEl = document.getElementById("resultMeta");
+
+    gaugeWrap.style.display = "block";
+
+    // L'aiguille tourne de -90deg (négatif, à gauche) à +90deg (positif, à droite)
+    // 0deg = tout droit = neutre
+    let angle = 0;
+    if (data.sentiment === "positif") angle = data.score * 90;
+    if (data.sentiment === "négatif") angle = -(data.score * 90);
+    if (data.sentiment === "neutre") angle = 0;
+
+    requestAnimationFrame(() => {
+      needle.style.transform = "rotate(" + angle + "deg)";
+    });
+
+    sentimentEl.innerText = data.sentiment;
+    sentimentEl.className = "result-sentiment " + data.sentiment;
+
+    metaEl.innerText = "confiance " + Math.round(data.score * 100) + "%  ·  " + data.label_brut;
+  }
+</script>
+
+</body>
+</html>

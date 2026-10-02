@@ -1,0 +1,27 @@
+:root {
+  --ink: #14213D;
+  --paper: #FAF7F0;
+  --gold: #C9A227;
+  --pos: #2D6A4F;
+  --neg: #9D2B2B;
+  --neu: #8A8375;
+}
+body { background: var(--ink); }
+.h { text-align: center; color: var(--paper); margin-top: 24px; }
+.cartprincipal { width: 100%; max-width: 580px; background-color: #f8f9fa !important; margin-bottom: 60px; }
+
+#zoneCamera video, #photoPrise { width: 100%; border-radius: 8px; background: #000; }
+#photoPrise { display: none; }
+
+#resultat { position: relative; width: 100%; max-width: 360px; margin: 16px auto 0; text-align: center; display: none; }
+#gaugeSvg { display: block; }
+#faceSad, #faceNeutral, #faceHappy { position: absolute; font-size: 1.6rem; }
+#faceSad { left: 4px; top: 128px; }
+#faceHappy { right: 4px; top: 128px; }
+#faceNeutral { left: 50%; top: 18px; transform: translateX(-50%); font-size: 1.4rem; }
+
+#texteSentiment { font-size: 1.4rem; font-weight: 600; text-transform: capitalize; margin: 0; }
+#texteSentiment.positif { color: var(--pos); }
+#texteSentiment.négatif { color: var(--neg); }
+#texteSentiment.neutre  { color: var(--neu); }
+#detailResultat { font-size: .85rem; color: #555; }

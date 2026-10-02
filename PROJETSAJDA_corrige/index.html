@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse de sentiment : texte et photo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+
+<body class="d-flex flex-column justify-content-center align-items-center min-vh-100">
+    <div class="h">
+        <h1>Donner votre avis</h1>
+        <p>Le sentiment est évalué à partir de votre texte, de votre photo, ou des deux.</p>
+    </div>
+
+    <div class="cartprincipal bg-light p-4 rounded-3 shadow">
+
+        <!-- Choix du mode -->
+        <div class="btn-group w-100 mb-3" role="group">
+            <button type="button" id="btnModeTexte" class="btn btn-primary" onclick="basculerMode('texte')">✍️ Texte</button>
+            <button type="button" id="btnModeCamera" class="btn btn-outline-secondary" onclick="basculerMode('camera')">📷 Photo</button>
+            <button type="button" id="btnModeLesDeux" class="btn btn-outline-secondary" onclick="basculerMode('les-deux')">✨ Les deux</button>
+        </div>
+
+        <!-- Zone photo -->
+        <div id="zoneCamera" style="display:none;" class="mb-3">
+            <video id="video" autoplay playsinline muted></video>
+            <img id="photoPrise" alt="Photo capturée"/>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div class="d-flex gap-2 mt-2">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnOuvrirCamera" onclick="ouvrirCamera()">📷 Ouvrir la caméra</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnCapturer" onclick="capturerPhoto()" style="display:none;">📸 Capturer</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnReprendre" onclick="reprendrePhoto()" style="display:none;">🔄 Reprendre</button>
+            </div>
+        </div>
+
+        <!-- Zone texte -->
+        <div id="zoneTexte" class="mb-3">
+            <label for="Analyse" class="form-label">Texte à analyser</label>
+            <textarea class="form-control" id="Analyse" rows="4" placeholder="Écrire ici"></textarea>
+        </div>
+
+        <button class="btn btn-primary w-100" id="btnAnalyser" onclick="analyser()">Analyser</button>
+
+        <!-- Résultat -->
+        <div id="resultat">
+            <svg id="gaugeSvg" viewBox="0 0 360 210" width="100%">
+                <defs>
+                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#9D2B2B"/>
+                        <stop offset="50%" stop-color="#8A8375"/>
+                        <stop offset="100%" stop-color="#2D6A4F"/>
+                    </linearGradient>
+                </defs>
+                <path d="M 20 180 A 160 160 0 0 1 340 180" fill="none" stroke="#EFEAE0" stroke-width="22" stroke-linecap="round"/>
+                <path d="M 20 180 A 160 160 0 0 1 340 180" fill="none" stroke="url(#gaugeGradient)" stroke-width="22" stroke-linecap="round"/>
+                <g id="gaugeNeedle" style="transform-origin: 180px 180px; transition: transform 1s ease;">
+                    <line x1="180" y1="180" x2="180" y2="55" stroke="#14213D" stroke-width="5" stroke-linecap="round"/>
+                </g>
+                <circle cx="180" cy="180" r="12" fill="#14213D" stroke="#FAF7F0" stroke-width="3"/>
+            </svg>
+            <span id="faceSad">😞</span>
+            <span id="faceNeutral">😐</span>
+            <span id="faceHappy">😊</span>
+            <p id="texteSentiment"></p>
+            <p id="texteScore" class="mb-1"></p>
+            <p id="detailResultat"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
